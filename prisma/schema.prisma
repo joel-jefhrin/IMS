@@ -1,0 +1,167 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// DEPARTMENT MODEL
+// ============================================
+// Central entity representing different departments
+// Relationships:
+// - One Department -> Many Questions
+// - One Department -> Many Campaigns
+// - One Department -> Many Candidates (preferred department)
+model Department {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  // Relationships
+  questions   Question[]  // Department can have many questions
+  campaigns   Campaign[]  // Department can run many campaigns
+  candidates  Candidate[] // Many candidates can prefer this department
+  
+  @@index([name])
+}
+
+// ============================================
+// QUESTION MODEL
+// ============================================
+// Questions belong to a department and are selected in campaigns
+// Relationships:
+// - Many Questions -> One Department
+model Question {
+  id           String   @id @default(cuid())
+  title        String
+  description  String   @db.Text
+  answerType   String   // 'multiple_choice', 'code_editor', 'essay', 'file_upload', 'rating_scale'
+  departmentId String
+  difficulty   String   // 'beginner', 'intermediate', 'advanced'
+  skillType    String   // 'technical', 'behavioral', 'logical'
+  tags         String   @db.Text // JSON string array
+  marks        Int      @default(10) // Fixed 10 points per question
+  
+  // Type-specific fields (stored as JSON)
+  options          String?  @db.Text // JSON array for multiple choice
+  correctAnswer    String?  @db.Text // JSON for correct answer(s)
+  codeTemplate     String?  @db.Text
+  rubric           String?  @db.Text
+  fileTypes        String?  @db.Text // JSON array
+  ratingScale      Int?
+  solutionTemplate String?  @db.Text
+  
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relationships
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  
+  @@index([departmentId])
+  @@index([difficulty])
+  @@index([skillType])
+  @@index([createdAt])
+}
+
+// ============================================
+// CAMPAIGN MODEL
+// ============================================
+// Campaigns belong to a department and have many candidates
+// Questions are stored as IDs in questionSetIds array
+// Relationships:
+// - Many Campaigns -> One Department
+// - One Campaign -> Many Candidates
+model Campaign {
+  id                    String   @id @default(cuid())
+  name                  String
+  description           String   @db.Text
+  departmentId          String
+  startDate             String
+  endDate               String
+  durationPerCandidate  Int      // Duration in minutes (manually set)
+  status                String   @default("draft") // 'draft', 'active', 'completed', 'archived'
+  questionSetIds        String   @db.Text // JSON array of question IDs
+  questionsPerCandidate Int
+  isRandomized          Boolean  @default(true)
+  passingScore          Int      // Passing percentage (0-100)
+  passingCriteria       String?  @db.Text
+  totalCandidates       Int      @default(0)
+  completedCandidates   Int      @default(0)
+  averageScore          Float    @default(0)
+  createdBy             String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relationships
+  department   Department  @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  candidates   Candidate[] // Campaign can have many candidates
+  
+  @@index([departmentId])
+  @@index([status])
+  @@index([startDate])
+  @@index([createdAt])
+}
+
+// ============================================
+// CANDIDATE MODEL
+// ============================================
+// Candidates are assigned to one campaign and prefer one department
+// Relationships:
+// - Many Candidates -> One Campaign
+// - Many Candidates -> One Department (preferred)
+model Candidate {
+  id                    String   @id @default(cuid())
+  firstName             String
+  lastName              String
+  email                 String   @unique
+  phone                 String?
+  education             String   @db.Text // JSON object {degree, institution, graduationYear, gpa}
+  preferredDepartmentId String
+  campaignId            String
+  status                String   @default("not_started") // 'invited', 'in_progress', 'completed', 'not_started'
+  assignedQuestions     String?  @db.Text // JSON array of assigned question IDs
+  answers               String?  @db.Text // JSON array of candidate answers
+  score                 Float    @default(0)
+  tempPassword          String
+  interviewStartedAt    String?
+  interviewCompletedAt  String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relationships
+  department   Department @relation(fields: [preferredDepartmentId], references: [id], onDelete: Cascade)
+  campaign     Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  @@index([preferredDepartmentId])
+  @@index([campaignId])
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+// ============================================
+// USER MODEL
+// ============================================
+// System users (admins, managers, etc.)
+// No direct relationships to other entities yet
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      String   @default("admin")
+  password  String   // In production, this should be hashed
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([email])
+  @@index([role])
+}
