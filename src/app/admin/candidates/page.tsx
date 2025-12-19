@@ -341,9 +341,9 @@ export default function CandidatesPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div>
-                      <p className="text-sm text-gray-900">{candidate.education.degree}</p>
+                      <p className="text-sm text-gray-900">{candidate?.education?.degree}</p>
                       <p className="text-xs text-gray-500">
-                        {candidate.education.institution} • {candidate.education.graduationYear}
+                        {candidate?.education?.institution} • {candidate?.education?.graduationYear}
                       </p>
                     </div>
                   </td>

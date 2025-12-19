@@ -1,7 +1,8 @@
 {
   "/api/departments/route": "app/api/departments/route.js",
-  "/api/candidates/route": "app/api/candidates/route.js",
   "/api/campaigns/route": "app/api/campaigns/route.js",
-  "/api/questions/route": "app/api/questions/route.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js"
+  "/api/candidates/route": "app/api/candidates/route.js",
+  "/api/candidates/[id]/route": "app/api/candidates/[id]/route.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js",
+  "/admin/candidates/page": "app/admin/candidates/page.js"
 }

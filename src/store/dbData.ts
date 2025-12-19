@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { Question, Campaign, Candidate, Department } from '@/types';
+import { create } from "zustand";
+import type { Question, Campaign, Candidate, Department } from "@/types";
 
 interface DBDataStore {
   // Questions
@@ -41,32 +41,34 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
   fetchQuestions: async () => {
     try {
       set({ loading: true });
-      const res = await fetch('/api/questions');
+      const res = await fetch("/api/questions");
       const questions = await res.json();
+      console.log(questions);
+
       set({ questions, loading: false });
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      console.error("Error fetching questions:", error);
       set({ loading: false });
     }
   },
   addQuestion: async (question) => {
     try {
-      const res = await fetch('/api/questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(question),
       });
       const newQuestion = await res.json();
       set((state) => ({ questions: [newQuestion, ...state.questions] }));
     } catch (error) {
-      console.error('Error adding question:', error);
+      console.error("Error adding question:", error);
     }
   },
   updateQuestion: async (id, question) => {
     try {
       const res = await fetch(`/api/questions/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(question),
       });
       const updated = await res.json();
@@ -74,17 +76,17 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
         questions: state.questions.map((q) => (q.id === id ? updated : q)),
       }));
     } catch (error) {
-      console.error('Error updating question:', error);
+      console.error("Error updating question:", error);
     }
   },
   deleteQuestion: async (id) => {
     try {
-      await fetch(`/api/questions/${id}`, { method: 'DELETE' });
+      await fetch(`/api/questions/${id}`, { method: "DELETE" });
       set((state) => ({
         questions: state.questions.filter((q) => q.id !== id),
       }));
     } catch (error) {
-      console.error('Error deleting question:', error);
+      console.error("Error deleting question:", error);
     }
   },
 
@@ -93,32 +95,32 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
   fetchCampaigns: async () => {
     try {
       set({ loading: true });
-      const res = await fetch('/api/campaigns');
+      const res = await fetch("/api/campaigns");
       const campaigns = await res.json();
       set({ campaigns, loading: false });
     } catch (error) {
-      console.error('Error fetching campaigns:', error);
+      console.error("Error fetching campaigns:", error);
       set({ loading: false });
     }
   },
   addCampaign: async (campaign) => {
     try {
-      const res = await fetch('/api/campaigns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(campaign),
       });
       const newCampaign = await res.json();
       set((state) => ({ campaigns: [newCampaign, ...state.campaigns] }));
     } catch (error) {
-      console.error('Error adding campaign:', error);
+      console.error("Error adding campaign:", error);
     }
   },
   updateCampaign: async (id, campaign) => {
     try {
       const res = await fetch(`/api/campaigns/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(campaign),
       });
       const updated = await res.json();
@@ -126,51 +128,59 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
         campaigns: state.campaigns.map((c) => (c.id === id ? updated : c)),
       }));
     } catch (error) {
-      console.error('Error updating campaign:', error);
+      console.error("Error updating campaign:", error);
     }
   },
   deleteCampaign: async (id) => {
     try {
-      await fetch(`/api/campaigns/${id}`, { method: 'DELETE' });
+      await fetch(`/api/campaigns/${id}`, { method: "DELETE" });
       set((state) => ({
         campaigns: state.campaigns.filter((c) => c.id !== id),
       }));
     } catch (error) {
-      console.error('Error deleting campaign:', error);
+      console.error("Error deleting campaign:", error);
     }
   },
 
   // Candidates
   candidates: [],
   fetchCandidates: async () => {
+    console.log("fetchCandidates called"); // Add this to confirm it's hit
     try {
       set({ loading: true });
-      const res = await fetch('/api/candidates');
+      const res = await fetch("/api/candidates");
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const candidates = await res.json();
-      set({ candidates, loading: false });
+      const fetchCandidates = Array.isArray(candidates)
+        ? candidates
+        : candidates?.data || [];
+      console.log("Fetched candidates:", fetchCandidates);
+      set({ candidates: fetchCandidates, loading: false });
     } catch (error) {
-      console.error('Error fetching candidates:', error);
+      console.error("Error fetching candidates:", error);
       set({ loading: false });
     }
   },
   addCandidate: async (candidate) => {
     try {
-      const res = await fetch('/api/candidates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/candidates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(candidate),
       });
       const newCandidate = await res.json();
       set((state) => ({ candidates: [newCandidate, ...state.candidates] }));
     } catch (error) {
-      console.error('Error adding candidate:', error);
+      console.error("Error adding candidate:", error);
     }
   },
   updateCandidate: async (id, candidate) => {
     try {
       const res = await fetch(`/api/candidates/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(candidate),
       });
       const updated = await res.json();
@@ -178,17 +188,17 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
         candidates: state.candidates.map((c) => (c.id === id ? updated : c)),
       }));
     } catch (error) {
-      console.error('Error updating candidate:', error);
+      console.error("Error updating candidate:", error);
     }
   },
   deleteCandidate: async (id) => {
     try {
-      await fetch(`/api/candidates/${id}`, { method: 'DELETE' });
+      await fetch(`/api/candidates/${id}`, { method: "DELETE" });
       set((state) => ({
         candidates: state.candidates.filter((c) => c.id !== id),
       }));
     } catch (error) {
-      console.error('Error deleting candidate:', error);
+      console.error("Error deleting candidate:", error);
     }
   },
 
@@ -197,32 +207,32 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
   fetchDepartments: async () => {
     try {
       set({ loading: true });
-      const res = await fetch('/api/departments');
+      const res = await fetch("/api/departments");
       const departments = await res.json();
       set({ departments, loading: false });
     } catch (error) {
-      console.error('Error fetching departments:', error);
+      console.error("Error fetching departments:", error);
       set({ loading: false });
     }
   },
   addDepartment: async (department) => {
     try {
-      const res = await fetch('/api/departments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/departments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(department),
       });
       const newDepartment = await res.json();
       set((state) => ({ departments: [newDepartment, ...state.departments] }));
     } catch (error) {
-      console.error('Error adding department:', error);
+      console.error("Error adding department:", error);
     }
   },
   updateDepartment: async (id, department) => {
     try {
       const res = await fetch(`/api/departments/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(department),
       });
       const updated = await res.json();
@@ -230,17 +240,17 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
         departments: state.departments.map((d) => (d.id === id ? updated : d)),
       }));
     } catch (error) {
-      console.error('Error updating department:', error);
+      console.error("Error updating department:", error);
     }
   },
   deleteDepartment: async (id) => {
     try {
-      await fetch(`/api/departments/${id}`, { method: 'DELETE' });
+      await fetch(`/api/departments/${id}`, { method: "DELETE" });
       set((state) => ({
         departments: state.departments.filter((d) => d.id !== id),
       }));
     } catch (error) {
-      console.error('Error deleting department:', error);
+      console.error("Error deleting department:", error);
     }
   },
 
@@ -248,4 +258,3 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
   loading: false,
   setLoading: (loading) => set({ loading }),
 }));
-

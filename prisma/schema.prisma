@@ -125,8 +125,8 @@ model Candidate {
   email                 String   @unique
   phone                 String?
   education             String   @db.Text // JSON object {degree, institution, graduationYear, gpa}
-  preferredDepartmentId String
-  campaignId            String
+  preferredDepartmentId String?
+  campaignId            String?
   status                String   @default("not_started") // 'invited', 'in_progress', 'completed', 'not_started'
   assignedQuestions     String?  @db.Text // JSON array of assigned question IDs
   answers               String?  @db.Text // JSON array of candidate answers
