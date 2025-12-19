@@ -138,8 +138,8 @@ model Candidate {
   updatedAt             DateTime @updatedAt
   
   // Relationships
-  department   Department @relation(fields: [preferredDepartmentId], references: [id], onDelete: Cascade)
-  campaign     Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  department   Department? @relation(fields: [preferredDepartmentId], references: [id], onDelete: Cascade)
+  campaign     Campaign?   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   
   @@index([preferredDepartmentId])
   @@index([campaignId])

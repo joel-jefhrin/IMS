@@ -1,36 +1,44 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_CANDIDATE_URL || 'http://localhost:3001';
-const ALLOWED_HEADERS = 'Origin, X-Requested-With, Content-Type, Accept, Authorization';
-const ALLOWED_METHODS = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_CANDIDATE_URL || "http://localhost:3001",
+  "http://localhost:3000", // admin app
+];
 
-export function middleware(request: Request) {
-  const origin = request.headers.get('origin') || '';
+const ALLOWED_HEADERS =
+  "Origin, X-Requested-With, Content-Type, Accept, Authorization";
+const ALLOWED_METHODS = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
 
-  // Handle CORS preflight
-  if (request.method === 'OPTIONS') {
-    const preflight = new NextResponse(null, { status: 200 });
-    preflight.headers.set('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-    preflight.headers.set('Access-Control-Allow-Methods', ALLOWED_METHODS);
-    preflight.headers.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);
-    preflight.headers.set('Access-Control-Allow-Credentials', 'true');
-    return preflight;
+export function middleware(req: NextRequest) {
+  const origin = req.headers.get("origin");
+
+  // 🔹 Preflight request
+  if (req.method === "OPTIONS") {
+    const res = new NextResponse(null, { status: 200 });
+
+    if (origin && ALLOWED_ORIGINS.includes(origin)) {
+      res.headers.set("Access-Control-Allow-Origin", origin);
+    }
+
+    res.headers.set("Access-Control-Allow-Methods", ALLOWED_METHODS);
+    res.headers.set("Access-Control-Allow-Headers", ALLOWED_HEADERS);
+    res.headers.set("Access-Control-Allow-Credentials", "true");
+
+    return res;
   }
 
-  const response = NextResponse.next();
+  const res = NextResponse.next();
 
-  // Apply CORS headers for API responses
-  if (origin === ALLOWED_ORIGIN) {
-    response.headers.set('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-    response.headers.set('Access-Control-Allow-Methods', ALLOWED_METHODS);
-    response.headers.set('Access-Control-Allow-Headers', ALLOWED_HEADERS);
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
+  // 🔹 Actual request
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Credentials", "true");
   }
 
-  return response;
+  return res;
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: "/api/:path*",
 };
-

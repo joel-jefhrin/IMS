@@ -1,81 +1,77 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
-// POST /api/auth/candidate - Authenticate candidate
+// Handle preflight
+export async function OPTIONS() {
+  return NextResponse.json({}, { status: 200 });
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, tempPassword } = body;
+    const { email, tempPassword } = await request.json();
 
     if (!email || !tempPassword) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    // Find candidate by email and tempPassword
     const candidate = await prisma.candidate.findFirst({
       where: {
         email: email.toLowerCase(),
-        tempPassword: tempPassword,
+        tempPassword,
       },
       include: {
-        campaign: {
-          include: {
-            department: true,
-          },
-        },
-        department: true,
+        campaign: true,
+       
       },
     });
 
+    console.log("Candidate:", candidate);
+
     if (!candidate) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    // Check if campaign is active
-    if (candidate.campaign.status !== 'active') {
+    // 🔥 SAFETY CHECK (IMPORTANT)
+    if (!candidate.campaign) {
       return NextResponse.json(
-        { error: 'This campaign is not currently active' },
+        { error: "Campaign not found for candidate" },
+        { status: 500 }
+      );
+    }
+
+    // Check campaign status
+    if (candidate.campaign.status !== "active") {
+      return NextResponse.json(
+        { error: "This campaign is not currently active" },
         { status: 403 }
       );
     }
 
-    // Transform data before sending
-    const transformedCandidate = {
-      ...candidate,
-      education: JSON.parse(candidate.education || '{}'),
-      assignedQuestions: candidate.assignedQuestions 
-        ? JSON.parse(candidate.assignedQuestions) 
-        : [],
-      answers: candidate.answers ? JSON.parse(candidate.answers) : [],
-    };
-
-    // Return candidate data (excluding sensitive info)
     return NextResponse.json({
-      id: transformedCandidate.id,
-      firstName: transformedCandidate.firstName,
-      lastName: transformedCandidate.lastName,
-      email: transformedCandidate.email,
-      status: transformedCandidate.status,
-      campaignId: transformedCandidate.campaignId,
-      campaign: transformedCandidate.campaign,
-      department: transformedCandidate.department,
-      assignedQuestions: transformedCandidate.assignedQuestions,
-      answers: transformedCandidate.answers,
-      interviewStartedAt: transformedCandidate.interviewStartedAt,
-      interviewCompletedAt: transformedCandidate.interviewCompletedAt,
+      id: candidate.id,
+      firstName: candidate.firstName,
+      lastName: candidate.lastName,
+      email: candidate.email,
+      status: candidate.status,
+      campaignId: candidate.campaignId,
+      campaign: candidate.campaign,
+      department: candidate.department,
+      assignedQuestions: JSON.parse(candidate.assignedQuestions || "[]"),
+      answers: JSON.parse(candidate.answers || "[]"),
+      interviewStartedAt: candidate.interviewStartedAt,
+      interviewCompletedAt: candidate.interviewCompletedAt,
     });
   } catch (error) {
-    console.error('Error authenticating candidate:', error);
+    console.error("AUTH ERROR:", error);
     return NextResponse.json(
-      { error: 'Authentication failed' },
+      { error: "Authentication failed" },
       { status: 500 }
     );
   }
 }
-

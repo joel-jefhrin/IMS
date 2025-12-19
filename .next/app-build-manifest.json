@@ -11,10 +11,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/admin/layout.js"
     ],
-    "/admin/dashboard/page": [
+    "/admin/questions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/dashboard/page.js"
+      "static/chunks/app/admin/questions/page.js"
     ],
     "/admin/candidates/page": [
       "static/chunks/webpack.js",
