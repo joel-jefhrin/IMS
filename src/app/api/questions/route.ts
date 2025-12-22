@@ -6,9 +6,9 @@ export async function GET() {
   try {
     const questions = await prisma.question.findMany({
       orderBy: { createdAt: "desc" },
-      include: { department: true },
+      // include: { department: true },
     });
-
+    console.log(questions);
     // Transform database format to app format
     const transformedQuestions = questions.map((q: any) => ({
       ...q,
@@ -54,8 +54,9 @@ export async function POST(request: Request) {
         solutionTemplate: body.solutionTemplate,
         createdBy: body.createdBy || "admin",
       },
-      include: { department: true },
+      // include: { department: true },
     });
+    console.log(question);
 
     // Transform database format to app format
     const transformedQuestion = {

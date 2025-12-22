@@ -43,7 +43,8 @@ export default function AdminDashboardPage() {
   }, [fetchDepartments, fetchQuestions, fetchCampaigns, fetchCandidates]);
 
   const totalDepartments = department.length;
-  const totalQuestions = question.length;
+  const totalQuestions = question?.length;
+  // console.log("questions", totalQuestions);
 
   const totalCampaigns = campaigns.length;
   const activeCampaigns = campaigns.filter((c) => c.status === "active").length;

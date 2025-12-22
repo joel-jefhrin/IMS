@@ -1,11 +1,10 @@
 {
-  "/not-found": "app/not-found.js",
-  "/api/auth/login/route": "app/api/auth/login/route.js",
-  "/api/departments/route": "app/api/departments/route.js",
-  "/api/questions/route": "app/api/questions/route.js",
-  "/api/campaigns/route": "app/api/campaigns/route.js",
   "/api/candidates/route": "app/api/candidates/route.js",
+  "/api/campaigns/route": "app/api/campaigns/route.js",
+  "/admin/departments/page": "app/admin/departments/page.js",
+  "/admin/results/page": "app/admin/results/page.js",
   "/admin/questions/page": "app/admin/questions/page.js",
-  "/admin/login/page": "app/admin/login/page.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js"
+  "/api/questions/route": "app/api/questions/route.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js",
+  "/admin/campaigns/page": "app/admin/campaigns/page.js"
 }

@@ -43,9 +43,11 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
       set({ loading: true });
       const res = await fetch("/api/questions");
       const questions = await res.json();
-      console.log(questions);
-
-      set({ questions, loading: false });
+      // console.log(questions);
+      const fetchQuestions = Array.isArray(questions)
+        ? questions
+        : questions?.data || [];
+      set({ questions: fetchQuestions, loading: false });
     } catch (error) {
       console.error("Error fetching questions:", error);
       set({ loading: false });

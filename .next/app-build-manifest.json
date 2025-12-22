@@ -16,10 +16,30 @@
       "static/chunks/main-app.js",
       "static/chunks/app/admin/questions/page.js"
     ],
-    "/admin/login/page": [
+    "/admin/campaigns/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/admin/login/page.js"
+      "static/chunks/app/admin/campaigns/page.js"
+    ],
+    "/admin/candidates/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/candidates/page.js"
+    ],
+    "/admin/departments/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/departments/page.js"
+    ],
+    "/admin/results/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/results/page.js"
+    ],
+    "/admin/mappings/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/admin/mappings/page.js"
     ],
     "/admin/dashboard/page": [
       "static/chunks/webpack.js",

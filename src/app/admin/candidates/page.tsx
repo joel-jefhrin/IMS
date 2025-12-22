@@ -1,260 +1,158 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
-  ArrowUpTrayIcon,
-  ArrowDownTrayIcon,
   EyeIcon,
   PencilIcon,
-  EnvelopeIcon,
-} from '@heroicons/react/24/outline';
-import type { Candidate } from '@/types';
-import { downloadCSV } from '@/utils/csvHelpers';
-import toast from 'react-hot-toast';
-import { CandidateForm } from '@/components/admin/CandidateForm';
-import { CandidateDetailModal } from '@/components/admin/CandidateDetailModal';
-import { useDBDataStore } from '@/store/dbData';
-
-const mockCandidates: Candidate[] = [
-  {
-    id: '1',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'sarah.j@email.com',
-    phone: '+1-555-0101',
-    education: {
-      degree: 'B.Tech Computer Science',
-      institution: 'MIT',
-      graduationYear: 2024,
-      gpa: '3.8',
-    },
-    preferredDepartmentId: 'd1', // Engineering
-    campaignId: 'camp-1',
-    status: 'completed',
-    assignedQuestions: ['q1', 'q2', 'q3'],
-    answers: [],
-    score: 95,
-    rank: 1,
-    tempPassword: 'temp123',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-20T15:30:00Z',
-  },
-  {
-    id: '2',
-    firstName: 'Michael',
-    lastName: 'Chen',
-    email: 'michael.c@email.com',
-    phone: '+1-555-0102',
-    education: {
-      degree: 'M.S. Data Science',
-      institution: 'Stanford',
-      graduationYear: 2024,
-      gpa: '3.9',
-    },
-    preferredDepartmentId: 'd3', // Data Science
-    campaignId: 'camp-2',
-    status: 'in_progress',
-    assignedQuestions: ['q4', 'q5'],
-    answers: [],
-    score: 0,
-    tempPassword: 'temp456',
-    createdAt: '2024-01-16T10:00:00Z',
-    updatedAt: '2024-01-21T10:00:00Z',
-  },
-  {
-    id: '3',
-    firstName: 'Emily',
-    lastName: 'Davis',
-    email: 'emily.d@email.com',
-    phone: '+1-555-0103',
-    education: {
-      degree: 'B.A. Product Design',
-      institution: 'Berkeley',
-      graduationYear: 2023,
-      gpa: '3.7',
-    },
-    preferredDepartmentId: 'd2', // Product Management/Design
-    campaignId: 'camp-3',
-    status: 'not_started',
-    assignedQuestions: ['q6', 'q7'],
-    answers: [],
-    score: 0,
-    tempPassword: 'temp789',
-    createdAt: '2024-01-17T10:00:00Z',
-    updatedAt: '2024-01-17T10:00:00Z',
-  },
-];
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import type { Campaign } from "@/types";
+import { downloadCSV } from "@/utils/csvHelpers";
+import toast from "react-hot-toast";
+import { CampaignForm } from "@/components/admin/CampaignForm";
+import { CampaignDetailModal } from "@/components/admin/CampaignDetailModal";
+import { useDBDataStore } from "@/store/dbData";
 
 const statusColors = {
-  invited: 'badge-primary',
-  in_progress: 'badge-warning',
-  completed: 'badge-success',
-  not_started: 'badge-gray',
+  draft: "badge-gray",
+  active: "badge-success",
+  completed: "badge-primary",
+  archived: "badge-gray",
 };
 
-const statusLabels = {
-  invited: 'Invited',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  not_started: 'Not Started',
-};
+export default function CampaignsPage() {
+  const {
+    campaigns,
+    addCampaign,
+    updateCampaign,
+    deleteCampaign,
+    fetchCampaigns,
+    questions,
+    fetchQuestions,
+    candidates,
+    fetchCandidates,
+  } = useDBDataStore();
 
-export default function CandidatesPage() {
-  const { candidates, addCandidate, updateCandidate, deleteCandidate, fetchCandidates } = useDBDataStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | Candidate['status']>('all');
-  const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | Campaign["status"]>(
+    "all"
+  );
+
   // Modal states
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
-  const [viewingCandidate, setViewingCandidate] = useState<Candidate | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [viewingCampaign, setViewingCampaign] = useState<Campaign | null>(null);
 
-  // Fetch candidates from database on mount
   useEffect(() => {
+    fetchCampaigns();
+    fetchQuestions();
     fetchCandidates();
-  }, [fetchCandidates]);
+  }, [fetchCampaigns, fetchQuestions, fetchCandidates]);
 
-  const filteredCandidates = candidates.filter((c) => {
-    const fullName = `${c.firstName} ${c.lastName}`.toLowerCase();
-    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
-                         c.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
+  // Calculate candidate counts & averages
+  const campaignsWithCounts = campaigns.map((campaign) => {
+    const campaignCandidates = candidates.filter(
+      (c) => c.campaignId === campaign.id
+    );
+    const completedCount = campaignCandidates.filter(
+      (c) => c.status === "completed"
+    ).length;
+    const avgScore =
+      completedCount > 0
+        ? campaignCandidates
+            .filter((c) => c.status === "completed")
+            .reduce((sum, c) => sum + c.score, 0) / completedCount
+        : 0;
+
+    return {
+      ...campaign,
+      totalCandidates: campaignCandidates.length,
+      completedCandidates: completedCount,
+      averageScore: avgScore,
+    };
+  });
+
+  const search = searchQuery.toLowerCase();
+
+  const filteredCampaigns = campaignsWithCounts.filter((c) => {
+    const name = (c.name ?? "").toLowerCase();
+    const description = (c.description ?? "").toLowerCase();
+
+    const matchesSearch = name.includes(search) || description.includes(search);
+    const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const toggleSelectAll = () => {
-    if (selectedCandidates.length === filteredCandidates.length) {
-      setSelectedCandidates([]);
-    } else {
-      setSelectedCandidates(filteredCandidates.map(c => c.id));
+  const handleExport = () => {
+    const dataToExport = campaignsWithCounts.map((c) => ({
+      name: c.name ?? "",
+      status: c.status,
+      totalCandidates: c.totalCandidates,
+      completedCandidates: c.completedCandidates,
+      averageScore: c.averageScore,
+    }));
+    downloadCSV(dataToExport, "campaigns_export");
+    toast.success("Campaigns exported successfully");
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this campaign?")) {
+      deleteCampaign(id);
+      toast.success("Campaign deleted successfully");
     }
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedCandidates(prev =>
-      prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
-    );
-  };
-
-  const handleExport = () => {
-    const dataToExport = candidates.map(c => ({
-      firstName: c.firstName,
-      lastName: c.lastName,
-      email: c.email,
-      status: c.status,
-      score: c.score,
-      rank: c.rank || '',
-    }));
-    downloadCSV(dataToExport, 'candidates_export');
-    toast.success('Candidates exported successfully');
-  };
-
-  const handleSendEmail = (candidateId: string) => {
-    toast.success('Invitation email sent successfully');
-  };
-
-  const handleCreateCandidate = (data: any) => {
-    const newCandidate: Candidate = {
-      id: `cand-${Date.now()}`,
+  const handleCreateCampaign = (data: any) => {
+    const newCampaign: Campaign = {
+      id: `c-${Date.now()}`,
       ...data,
-      status: 'not_started' as const,
-      assignedQuestions: [],
-      answers: [],
-      score: 0,
-      tempPassword: `temp${Math.floor(Math.random() * 10000)}`,
+      status: "draft",
+      totalCandidates: 0,
+      completedCandidates: 0,
+      averageScore: 0,
+      createdBy: "admin",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    addCandidate(newCandidate);
+    addCampaign(newCampaign);
   };
 
-  const handleUpdateCandidate = (data: any) => {
-    if (!editingCandidate) return;
-    const updatedCandidate = {
-      ...editingCandidate,
+  const handleUpdateCampaign = (data: any) => {
+    if (!editingCampaign) return;
+    const updatedCampaign = {
+      ...editingCampaign,
       ...data,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     };
-    updateCandidate(editingCandidate.id, updatedCandidate);
-    setEditingCandidate(null);
-  };
-
-  const handlePasswordReset = (candidateId: string, newPassword: string) => {
-    // Update the candidate in the store with the new password
-    const candidate = candidates.find(c => c.id === candidateId);
-    if (candidate) {
-      updateCandidate(candidateId, {
-        ...candidate,
-        tempPassword: newPassword,
-        updatedAt: new Date().toISOString(),
-      });
-      // Also update the viewing candidate if it's the same one
-      if (viewingCandidate?.id === candidateId) {
-        setViewingCandidate({
-          ...viewingCandidate,
-          tempPassword: newPassword,
-        });
-      }
-    }
+    updateCampaign(editingCampaign.id, updatedCampaign);
+    setEditingCampaign(null);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Candidates</h1>
-          <p className="text-gray-600 mt-1">Manage candidate profiles and interviews</p>
+          <h1 className="text-3xl font-bold text-gray-900">Campaigns</h1>
+          <p className="text-gray-600 mt-1">Manage your interview campaigns</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="btn-outline flex items-center gap-2">
-            <ArrowUpTrayIcon className="w-4 h-4" />
-            Bulk Import
-          </button>
-          <button onClick={handleExport} className="btn-outline flex items-center gap-2">
-            <ArrowDownTrayIcon className="w-4 h-4" />
+          <button onClick={handleExport} className="btn-outline">
             Export
           </button>
           <button
             onClick={() => {
-              setEditingCandidate(null);
+              setEditingCampaign(null);
               setShowForm(true);
             }}
             className="btn-primary flex items-center gap-2"
           >
             <PlusIcon className="w-4 h-4" />
-            Add Candidate
+            Create Campaign
           </button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-4 border-l-4 border-gray-400">
-          <p className="text-sm text-gray-600">Total Candidates</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{candidates.length}</p>
-        </div>
-        <div className="card p-4 border-l-4 border-success-400">
-          <p className="text-sm text-gray-600">Completed</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
-            {candidates.filter(c => c.status === 'completed').length}
-          </p>
-        </div>
-        <div className="card p-4 border-l-4 border-warning-400">
-          <p className="text-sm text-gray-600">In Progress</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
-            {candidates.filter(c => c.status === 'in_progress').length}
-          </p>
-        </div>
-        <div className="card p-4 border-l-4 border-primary-400">
-          <p className="text-sm text-gray-600">Average Score</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
-            {Math.round(candidates.filter(c => c.score > 0).reduce((sum, c) => sum + c.score, 0) / 
-             candidates.filter(c => c.score > 0).length) || 0}
-          </p>
         </div>
       </div>
 
@@ -265,7 +163,7 @@ export default function CandidatesPage() {
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder="Search campaigns..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input pl-10"
@@ -277,149 +175,115 @@ export default function CandidatesPage() {
             className="input w-48"
           >
             <option value="all">All Status</option>
-            <option value="not_started">Not Started</option>
-            <option value="in_progress">In Progress</option>
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
             <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
           </select>
         </div>
       </div>
 
-      {/* Bulk Actions */}
-      {selectedCandidates.length > 0 && (
-        <div className="card p-4 bg-primary-50 border-primary-200">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-primary-900">
-              {selectedCandidates.length} candidate{selectedCandidates.length > 1 ? 's' : ''} selected
-            </span>
-            <div className="flex items-center gap-3">
-              <button className="btn-outline text-sm">Send Reminder</button>
-              <button className="btn-outline text-sm">Export Selected</button>
+      {/* Campaigns Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredCampaigns.map((campaign) => (
+          <div key={campaign.id} className="card p-6">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {campaign.name ?? ""}
+              </h3>
+              <span
+                className={`badge ${statusColors[campaign.status]} capitalize`}
+              >
+                {campaign.status}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              {campaign.description ?? ""}
+            </p>
+            <div className="space-y-2 text-sm text-gray-700">
+              <div className="flex justify-between">
+                <span>Candidates:</span>
+                <span className="font-medium">{campaign.totalCandidates}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Completed:</span>
+                <span className="font-medium">
+                  {campaign.completedCandidates}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Avg Score:</span>
+                <span className="font-medium">
+                  {campaign.averageScore.toFixed(1)}
+                </span>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setViewingCampaign(campaign);
+                  setShowDetail(true);
+                }}
+                className="btn-outline flex-1 py-2 text-sm flex items-center justify-center gap-2"
+              >
+                <EyeIcon className="w-4 h-4" />
+                View
+              </button>
+              <button
+                onClick={() => {
+                  setEditingCampaign(campaign);
+                  setShowForm(true);
+                }}
+                className="btn-ghost p-2"
+              >
+                <PencilIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleDelete(campaign.id)}
+                className="btn-ghost p-2 text-danger-600 hover:bg-danger-50"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
             </div>
           </div>
+        ))}
+      </div>
+
+      {filteredCampaigns.length === 0 && (
+        <div className="card p-12 text-center">
+          <p className="text-gray-500">No campaigns found</p>
         </div>
       )}
-
-      {/* Candidates Table */}
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left px-6 py-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedCandidates.length === filteredCandidates.length && filteredCandidates.length > 0}
-                    onChange={toggleSelectAll}
-                    className="rounded border-gray-300"
-                  />
-                </th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase px-6 py-3">Candidate</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase px-6 py-3">Education</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase px-6 py-3">Status</th>
-                <th className="text-left text-xs font-medium text-gray-500 uppercase px-6 py-3">Score</th>
-                <th className="text-right text-xs font-medium text-gray-500 uppercase px-6 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredCandidates.map((candidate) => (
-                <tr key={candidate.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedCandidates.includes(candidate.id)}
-                      onChange={() => toggleSelect(candidate.id)}
-                      className="rounded border-gray-300"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {candidate.firstName} {candidate.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500">{candidate.email}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="text-sm text-gray-900">{candidate?.education?.degree}</p>
-                      <p className="text-xs text-gray-500">
-                        {candidate?.education?.institution} • {candidate?.education?.graduationYear}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`badge ${statusColors[candidate.status]}`}>
-                      {statusLabels[candidate.status]}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm font-semibold text-gray-900">
-                      {candidate.score > 0 ? candidate.score : '-'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => {
-                          setViewingCandidate(candidate);
-                          setShowDetail(true);
-                        }}
-                        className="p-2 text-gray-400 hover:text-primary-600"
-                      >
-                        <EyeIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingCandidate(candidate);
-                          setShowForm(true);
-                        }}
-                        className="p-2 text-gray-400 hover:text-primary-600"
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleSendEmail(candidate.id)}
-                        className="p-2 text-gray-400 hover:text-primary-600"
-                      >
-                        <EnvelopeIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       {/* Modals */}
       {showForm && (
-        <CandidateForm
-          candidate={editingCandidate}
+        <CampaignForm
+          campaign={editingCampaign}
+          availableQuestions={questions}
           onClose={() => {
             setShowForm(false);
-            setEditingCandidate(null);
+            setEditingCampaign(null);
           }}
-          onSubmit={editingCandidate ? handleUpdateCandidate : handleCreateCandidate}
+          onSubmit={
+            editingCampaign ? handleUpdateCampaign : handleCreateCampaign
+          }
         />
       )}
 
-      {showDetail && viewingCandidate && (
-        <CandidateDetailModal
-          candidate={viewingCandidate}
+      {showDetail && viewingCampaign && (
+        <CampaignDetailModal
+          campaign={viewingCampaign}
           onClose={() => {
             setShowDetail(false);
-            setViewingCandidate(null);
+            setViewingCampaign(null);
           }}
           onEdit={() => {
-            setEditingCandidate(viewingCandidate);
+            setEditingCampaign(viewingCampaign);
             setShowDetail(false);
             setShowForm(true);
           }}
-          onPasswordReset={handlePasswordReset}
         />
       )}
     </div>
   );
 }
-

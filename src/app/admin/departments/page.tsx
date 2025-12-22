@@ -412,13 +412,14 @@ export default function DepartmentsPage() {
 
       {/* Modals */}
       {showForm && (
-        <DepartmentForm
+        <DepartmentForm 
           department={editingDepartment}
           onClose={() => {
             setShowForm(false);
             setEditingDepartment(null);
           }}
           onSubmit={editingDepartment ? handleUpdateDepartment : handleCreateDepartment}
+          
         />
       )}
 
