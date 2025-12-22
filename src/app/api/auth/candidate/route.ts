@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       status: candidate.status,
       campaignId: candidate.campaignId,
       campaign: candidate.campaign,
-      department: candidate.department,
+      // department: candidate.department,
       assignedQuestions: JSON.parse(candidate.assignedQuestions || "[]"),
       answers: JSON.parse(candidate.answers || "[]"),
       interviewStartedAt: candidate.interviewStartedAt,

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-
+import axios from "axios";
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,26 +11,47 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (email === "admin@demo.com" && password === "demo123") {
-      router.push("/admin/dashboard");
-    } else {
-      setError("Invalid email or password. Use admin@demo.com / demo123");
+    try {
+      const res = await axios.post(
+        "/api/auth/login", // ✅ Correct API URL
+        {
+          email,
+          password,
+        }
+      );
+
+      // ✅ success - store user data and redirect
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      router.push(res.data.redirectPath || "/admin/dashboard");
+    } catch (err: any) {
+      // ❌ API error handling
+      if (err.response) {
+        setError(err.response.data.error || "Login failed");
+      } else {
+        setError("Server not reachable");
+      }
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-3xl font-bold text-center text-gray-900">Admin Login</h2>
-        <p className="text-center text-gray-600">Access your Interview Management System</p>
+        <h2 className="text-3xl font-bold text-center text-gray-900">
+          Admin Login
+        </h2>
+        <p className="text-center text-gray-600">
+          Access your Interview Management System
+        </p>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label htmlFor="email" className="label">Email Address</label>
+            <label htmlFor="email" className="label">
+              Email Address
+            </label>
             <input
               id="email"
               type="email"
@@ -42,7 +63,9 @@ export default function AdminLoginPage() {
             />
           </div>
           <div>
-            <label htmlFor="password" className="label">Password</label>
+            <label htmlFor="password" className="label">
+              Password
+            </label>
             <div className="relative">
               <input
                 id="password"
@@ -76,12 +99,12 @@ export default function AdminLoginPage() {
 
         <div className="text-center text-sm text-gray-500">
           <p>
-            Demo Credentials: <span className="font-semibold">admin@demo.com</span> /{" "}
-            <span className="font-semibold">demo123</span>
+            Demo Credentials:{" "}
+            <span className="font-semibold">admin@example.com</span> /{" "}
+            <span className="font-semibold">admin123</span>
           </p>
         </div>
       </div>
     </div>
   );
 }
-
