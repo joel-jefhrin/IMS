@@ -1,8 +1,7 @@
 {
-  "/api/candidates/[id]/submit/route": "app/api/candidates/[id]/submit/route.js",
-  "/admin/questions/page": "app/admin/questions/page.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/admin/campaigns/page": "app/admin/campaigns/page.js",
   "/admin/mappings/page": "app/admin/mappings/page.js",
   "/admin/results/page": "app/admin/results/page.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/admin/departments/page": "app/admin/departments/page.js"
+  "/admin/questions/page": "app/admin/questions/page.js"
 }
