@@ -9,9 +9,10 @@ import {
   TrophyIcon,
   ArrowTrendingUpIcon,
 } from "@heroicons/react/24/outline";
-
+import { Box, CircularProgress } from "@mui/material";
 import { useDBDataStore } from "@/store/dbData";
 import { useEffect } from "react";
+import { HashLoader } from "react-spinners";
 
 export default function AdminDashboardPage() {
   const department = useDBDataStore((state) => state.departments);
@@ -22,6 +23,7 @@ export default function AdminDashboardPage() {
   const fetchCampaigns = useDBDataStore((state) => state.fetchCampaigns);
   const candidates = useDBDataStore((state) => state.candidates);
   const fetchCandidates = useDBDataStore((state) => state.fetchCandidates);
+  const loading = useDBDataStore((state) => state.loading);
   // console.log("candidate",candidates);
 
   // Accurate KPIs based on mock data from all modules
@@ -65,6 +67,20 @@ export default function AdminDashboardPage() {
       : Math.round((completedCandidates / totalCandidates) * 100);
   const avgScore = 95;
 
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          height: "70vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <HashLoader color="#265145" size={80} />
+      </Box>
+    );
+  }
   return (
     <div className="space-y-6">
       <div>

@@ -25,7 +25,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         ratingScale: body.ratingScale,
         solutionTemplate: body.solutionTemplate,
       },
-      include: { department: true },
+      // include: { department: true },
     });
     
     // Transform database format to app format

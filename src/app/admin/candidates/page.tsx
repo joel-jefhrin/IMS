@@ -14,7 +14,8 @@ import toast from "react-hot-toast";
 import { CampaignForm } from "@/components/admin/CampaignForm";
 import { CampaignDetailModal } from "@/components/admin/CampaignDetailModal";
 import { useDBDataStore } from "@/store/dbData";
-
+import { HashLoader } from "react-spinners";
+import { Box, CircularProgress } from "@mui/material";
 const statusColors = {
   draft: "badge-gray",
   active: "badge-success",
@@ -34,7 +35,7 @@ export default function CampaignsPage() {
     candidates,
     fetchCandidates,
   } = useDBDataStore();
-
+  const loading = useDBDataStore((state) => state.loading);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | Campaign["status"]>(
     "all"
@@ -131,7 +132,20 @@ export default function CampaignsPage() {
     updateCampaign(editingCampaign.id, updatedCampaign);
     setEditingCampaign(null);
   };
-
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          height: "70vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <HashLoader color="#265145" size={80} />
+      </Box>
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

@@ -1,25 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
   EyeIcon,
   PencilIcon,
   TrashIcon,
-} from '@heroicons/react/24/outline';
-import type { Campaign } from '@/types';
-import { downloadCSV } from '@/utils/csvHelpers';
-import toast from 'react-hot-toast';
-import { CampaignForm } from '@/components/admin/CampaignForm';
-import { CampaignDetailModal } from '@/components/admin/CampaignDetailModal';
-import { useDBDataStore } from '@/store/dbData';
-
-const statusColors: Record<Campaign['status'], string> = {
-  draft: 'badge-gray',
-  active: 'badge-success',
-  completed: 'badge-primary',
-  archived: 'badge-gray',
+} from "@heroicons/react/24/outline";
+import type { Campaign } from "@/types";
+import { downloadCSV } from "@/utils/csvHelpers";
+import toast from "react-hot-toast";
+import { CampaignForm } from "@/components/admin/CampaignForm";
+import { CampaignDetailModal } from "@/components/admin/CampaignDetailModal";
+import { useDBDataStore } from "@/store/dbData";
+import { HashLoader } from "react-spinners";
+import { Box, CircularProgress } from "@mui/material";
+const statusColors: Record<Campaign["status"], string> = {
+  draft: "badge-gray",
+  active: "badge-success",
+  completed: "badge-primary",
+  archived: "badge-gray",
 };
 
 export default function CampaignsPage() {
@@ -34,17 +35,16 @@ export default function CampaignsPage() {
     updateCampaign,
     deleteCampaign,
   } = useDBDataStore();
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] =
-    useState<'all' | Campaign['status']>('all');
+  const loading = useDBDataStore((state) => state.loading);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | Campaign["status"]>(
+    "all"
+  );
 
   const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const [editingCampaign, setEditingCampaign] =
-    useState<Campaign | null>(null);
-  const [viewingCampaign, setViewingCampaign] =
-    useState<Campaign | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
+  const [viewingCampaign, setViewingCampaign] = useState<Campaign | null>(null);
 
   /* ----------------------------------------
      FETCH DATA
@@ -64,15 +64,13 @@ export default function CampaignsPage() {
     );
 
     const completedCandidates = relatedCandidates.filter(
-      (c) => c.status === 'completed'
+      (c) => c.status === "completed"
     );
 
     const averageScore =
       completedCandidates.length > 0
-        ? completedCandidates.reduce(
-            (sum, c) => sum + (c.score ?? 0),
-            0
-          ) / completedCandidates.length
+        ? completedCandidates.reduce((sum, c) => sum + (c.score ?? 0), 0) /
+          completedCandidates.length
         : 0;
 
     return {
@@ -91,10 +89,9 @@ export default function CampaignsPage() {
 
     const matchesSearch =
       c?.name?.toLowerCase().includes(search) ||
-      (c.description ?? '').toLowerCase().includes(search);
+      (c.description ?? "").toLowerCase().includes(search);
 
-    const matchesStatus =
-      statusFilter === 'all' || c.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || c.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -111,25 +108,25 @@ export default function CampaignsPage() {
       AverageScore: c.averageScore.toFixed(2),
     }));
 
-    downloadCSV(exportData, 'campaigns');
-    toast.success('Campaigns exported');
+    downloadCSV(exportData, "campaigns");
+    toast.success("Campaigns exported");
   };
 
   const handleDelete = (id: string) => {
-    if (!confirm('Delete this campaign?')) return;
+    if (!confirm("Delete this campaign?")) return;
     deleteCampaign(id);
-    toast.success('Campaign deleted');
+    toast.success("Campaign deleted");
   };
 
   const handleCreateCampaign = (data: any) => {
     const newCampaign: Campaign = {
       id: `c-${Date.now()}`,
       ...data,
-      status: 'draft',
+      status: "draft",
       totalCandidates: 0,
       completedCandidates: 0,
       averageScore: 0,
-      createdBy: 'admin',
+      createdBy: "admin",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -154,15 +151,28 @@ export default function CampaignsPage() {
   /* ----------------------------------------
      UI
   ----------------------------------------- */
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          height: "70vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <HashLoader color="#265145" size={80} />
+      </Box>
+    );
+  }
   return (
     <div className="space-y-6">
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Campaigns</h1>
-          <p className="text-gray-600">
-            Manage interview campaigns
-          </p>
+          <p className="text-gray-600">Manage interview campaigns</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleExport} className="btn-outline">
@@ -196,9 +206,7 @@ export default function CampaignsPage() {
         <select
           className="input w-48"
           value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value as any)
-          }
+          onChange={(e) => setStatusFilter(e.target.value as any)}
         >
           <option value="all">All Status</option>
           <option value="draft">Draft</option>
@@ -213,19 +221,13 @@ export default function CampaignsPage() {
         {filteredCampaigns.map((campaign) => (
           <div key={campaign.id} className="card p-6">
             <div className="flex justify-between mb-3">
-              <h3 className="font-semibold text-lg">
-                {campaign.name}
-              </h3>
-              <span
-                className={`badge ${statusColors[campaign.status]}`}
-              >
+              <h3 className="font-semibold text-lg">{campaign.name}</h3>
+              <span className={`badge ${statusColors[campaign.status]}`}>
                 {campaign.status}
               </span>
             </div>
 
-            <p className="text-sm text-gray-600 mb-4">
-              {campaign.description}
-            </p>
+            <p className="text-sm text-gray-600 mb-4">{campaign.description}</p>
 
             <div className="text-sm space-y-1">
               <div className="flex justify-between">
@@ -238,9 +240,7 @@ export default function CampaignsPage() {
               </div>
               <div className="flex justify-between">
                 <span>Avg Score</span>
-                <span>
-                  {campaign.averageScore.toFixed(1)}
-                </span>
+                <span>{campaign.averageScore.toFixed(1)}</span>
               </div>
             </div>
 
@@ -293,9 +293,7 @@ export default function CampaignsPage() {
             setEditingCampaign(null);
           }}
           onSubmit={
-            editingCampaign
-              ? handleUpdateCampaign
-              : handleCreateCampaign
+            editingCampaign ? handleUpdateCampaign : handleCreateCampaign
           }
         />
       )}

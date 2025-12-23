@@ -12,7 +12,8 @@ import {
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import { useDBDataStore } from "@/store/dbData";
-
+import { HashLoader } from "react-spinners";
+import { Box, CircularProgress } from "@mui/material";
 export default function MappingsPage() {
   const {
     departments,
@@ -24,6 +25,7 @@ export default function MappingsPage() {
     fetchCampaigns,
     fetchCandidates,
   } = useDBDataStore();
+  const loading = useDBDataStore((state) => state.loading);
   const [selectedView, setSelectedView] = useState<
     "overview" | "department" | "campaign" | "question"
   >("overview");
@@ -162,7 +164,20 @@ export default function MappingsPage() {
   const selectedCampaign = campaignsWithDetails.find(
     (c) => c.id === selectedCampaignId
   );
-
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          height: "70vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <HashLoader color="#265145" size={80} />
+      </Box>
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

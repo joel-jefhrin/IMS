@@ -158,7 +158,7 @@ export const useDBDataStore = create<DBDataStore>((set, get) => ({
       const fetchCandidates = Array.isArray(candidates)
         ? candidates
         : candidates?.data || [];
-      console.log("Fetched candidates:", fetchCandidates);
+      // console.log("Fetched candidates:", fetchCandidates);
       set({ candidates: fetchCandidates, loading: false });
     } catch (error) {
       console.error("Error fetching candidates:", error);
