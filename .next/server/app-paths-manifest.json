@@ -1,7 +1,5 @@
 {
-  "/admin/login/page": "app/admin/login/page.js",
-  "/admin/campaigns/page": "app/admin/campaigns/page.js",
-  "/admin/mappings/page": "app/admin/mappings/page.js",
-  "/admin/results/page": "app/admin/results/page.js",
-  "/admin/questions/page": "app/admin/questions/page.js"
+  "/api/candidates/[id]/submit/route": "app/api/candidates/[id]/submit/route.js",
+  "/api/candidates/[id]/questions/route": "app/api/candidates/[id]/questions/route.js",
+  "/admin/candidates/page": "app/admin/candidates/page.js"
 }

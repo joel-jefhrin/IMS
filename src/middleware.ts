@@ -2,41 +2,38 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const ALLOWED_ORIGINS = [
-  process.env.NEXT_PUBLIC_CANDIDATE_URL || "http://localhost:3001",
-  "http://localhost:3000", // admin app
+  "http://localhost:3000",
+  "http://localhost:3001",
 ];
 
-const ALLOWED_HEADERS =
-  "Origin, X-Requested-With, Content-Type, Accept, Authorization";
-const ALLOWED_METHODS = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
+export function middleware(request: NextRequest) {
+  const origin = request.headers.get("origin");
 
-export function middleware(req: NextRequest) {
-  const origin = req.headers.get("origin");
-
-  // 🔹 Preflight request
-  if (req.method === "OPTIONS") {
-    const res = new NextResponse(null, { status: 200 });
+  // Preflight
+  if (request.method === "OPTIONS") {
+    const response = new NextResponse(null, { status: 204 });
 
     if (origin && ALLOWED_ORIGINS.includes(origin)) {
-      res.headers.set("Access-Control-Allow-Origin", origin);
+      response.headers.set("Access-Control-Allow-Origin", origin);
     }
 
-    res.headers.set("Access-Control-Allow-Methods", ALLOWED_METHODS);
-    res.headers.set("Access-Control-Allow-Headers", ALLOWED_HEADERS);
-    res.headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set("Vary", "Origin"); // 🔥 IMPORTANT
 
-    return res;
+    return response;
   }
 
-  const res = NextResponse.next();
+  const response = NextResponse.next();
 
-  // 🔹 Actual request
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.headers.set("Access-Control-Allow-Origin", origin);
-    res.headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set("Vary", "Origin"); // 🔥 IMPORTANT
   }
 
-  return res;
+  return response;
 }
 
 export const config = {

@@ -14,7 +14,6 @@ const mockDepartments = [
   { id: "d5", name: "Sales" },
 ];
 
-// This will be replaced with actual questions from API/props
 // For now, keeping as placeholder - actual questions should be passed as prop
 const mockQuestions: any[] = [];
 
