@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
+import jwt from "jsonwebtoken";
+import { use } from "react";
 /* -------------------------------
    CORS PREFLIGHT
 -------------------------------- */
@@ -54,6 +55,20 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+    const JWT_SECRET = process.env.JWT_SECRET as string;
+
+    if (!JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined");
+    }
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     /* ----------------------------
        4. REDIRECT PATH
@@ -65,6 +80,7 @@ export async function POST(request: NextRequest) {
     ---------------------------- */
     return NextResponse.json({
       message: "Login successful",
+      token,
       user: {
         id: user.id,
         email: user.email,

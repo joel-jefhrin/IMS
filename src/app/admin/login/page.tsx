@@ -26,6 +26,7 @@ export default function AdminLoginPage() {
 
       // ✅ success - store user data and redirect
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token);
       router.push(res.data.redirectPath || "/admin/dashboard");
     } catch (err: any) {
       // ❌ API error handling

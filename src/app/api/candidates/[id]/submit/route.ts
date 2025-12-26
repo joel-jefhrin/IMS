@@ -58,8 +58,8 @@ export async function POST(
       {
         message: "Interview submitted successfully",
         candidateId: updatedCandidate.id,
-      },
-      { headers: corsHeaders }
+      }
+      // { headers: corsHeaders }
     );
   } catch (error) {
     console.error("Submit error:", error);

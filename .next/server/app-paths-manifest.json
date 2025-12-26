@@ -1,5 +1,1 @@
-{
-  "/api/candidates/[id]/submit/route": "app/api/candidates/[id]/submit/route.js",
-  "/api/candidates/[id]/questions/route": "app/api/candidates/[id]/questions/route.js",
-  "/admin/candidates/page": "app/admin/candidates/page.js"
-}
+{}
